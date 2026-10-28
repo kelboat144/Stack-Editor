@@ -1,0 +1,25 @@
+STACK EDITOR - a Swing text editor built on stacks
+===================================================
+
+HOW TO RUN (pick one)
+  1. Double-click StackEditor.jar            (needs Java 11+ installed)
+  2. Double-click run.bat (Windows) or run ./run.sh (Mac/Linux)
+  3. Open the "src" folder in IntelliJ IDEA, Eclipse or NetBeans and run
+     stackeditor.Main
+
+HOW TO USE
+  - Type in the left pane. Every edit is pushed on the UNDO stack.
+  - Undo (Ctrl+Z) pops the undo stack and pushes the edit onto the REDO stack.
+  - Redo (Ctrl+Y or Ctrl+Shift+Z) moves it back.
+  - Typing something new clears the redo stack.
+  - The status bar uses a BRACKET stack to check (), [] and {}.
+    The first error is highlighted in red in the text.
+  - The right-hand panels show all three stacks live (top is listed first).
+  - "Load sample" inserts balanced code; delete a } to see an error.
+
+FILES
+  ArrayStack.java     hand-written generic stack (push, pop, peek)
+  EditAction.java     one edit (offset, removed text, inserted text)
+  BracketChecker.java bracket matching with a stack
+  EditorFrame.java    the Swing window, undo/redo logic
+  Main.java           entry point

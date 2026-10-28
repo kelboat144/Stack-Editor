@@ -1,0 +1,37 @@
+package stackeditor;
+
+/**
+ * One edit to the document: at 'offset', the text 'removed' was replaced
+ * by the text 'inserted'. Typing is (removed = "", inserted = "a"),
+ * deleting is (removed = "a", inserted = ""), and typing over a selection
+ * is both at once. Undo and redo are just this replacement run in reverse
+ * or forwards.
+ */
+public final class EditAction {
+
+    public final int offset;
+    public final String removed;
+    public final String inserted;
+
+    public EditAction(int offset, String removed, String inserted) {
+        this.offset = offset;
+        this.removed = removed;
+        this.inserted = inserted;
+    }
+
+    /** Short human-readable description for the stack viewer. */
+    public String describe() {
+        if (removed.isEmpty()) {
+            return "INSERT  " + quote(inserted) + "  @" + offset;
+        } else if (inserted.isEmpty()) {
+            return "DELETE  " + quote(removed) + "  @" + offset;
+        }
+        return "REPLACE " + quote(removed) + " \u2192 " + quote(inserted) + "  @" + offset;
+    }
+
+    private static String quote(String s) {
+        String t = s.replace("\n", "\u21B5").replace("\t", "\u21E5");
+        if (t.length() > 18) t = t.substring(0, 18) + "\u2026";
+        return "\"" + t + "\"";
+    }
+}

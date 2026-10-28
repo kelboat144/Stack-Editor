@@ -1,0 +1,104 @@
+package stackeditor;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/** Checks that (), [] and {} are balanced, using a stack of opening brackets. */
+public final class BracketChecker {
+
+    /** An opening bracket and where it sits in the text. */
+    public static final class Entry {
+        public final char ch;
+        public final int pos;
+
+        Entry(char ch, int pos) {
+            this.ch = ch;
+            this.pos = pos;
+        }
+    }
+
+    /** Outcome of a check. errorPos is -1 when the text is balanced. */
+    public static final class Result {
+        public final boolean balanced;
+        public final int errorPos;
+        public final String message;
+
+        Result(boolean balanced, int errorPos, String message) {
+            this.balanced = balanced;
+            this.errorPos = errorPos;
+            this.message = message;
+        }
+    }
+
+    private static boolean isOpen(char c) {
+        return c == '(' || c == '[' || c == '{';
+    }
+
+    private static boolean isClose(char c) {
+        return c == ')' || c == ']' || c == '}';
+    }
+
+    private static char matching(char close) {
+        switch (close) {
+            case ')': return '(';
+            case ']': return '[';
+            default:  return '{';
+        }
+    }
+
+    /** Scans the whole text and reports the first error, if any. */
+    public static Result check(String text) {
+        ArrayStack<Entry> stack = new ArrayStack<>();
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (isOpen(c)) {
+                stack.push(new Entry(c, i));
+            } else if (isClose(c)) {
+                if (stack.isEmpty()) {
+                    return new Result(false, i, "Unexpected '" + c + "' at " + lineCol(text, i)
+                            + " (nothing is open)");
+                }
+                Entry top = stack.pop();
+                if (top.ch != matching(c)) {
+                    return new Result(false, i, "Mismatch at " + lineCol(text, i) + ": found '" + c
+                            + "' but '" + top.ch + "' from " + lineCol(text, top.pos) + " is still open");
+                }
+            }
+        }
+        if (!stack.isEmpty()) {
+            Entry top = stack.peek();
+            return new Result(false, top.pos, "Unclosed '" + top.ch + "' at " + lineCol(text, top.pos)
+                    + " (" + stack.size() + " bracket" + (stack.size() == 1 ? "" : "s") + " still open)");
+        }
+        return new Result(true, -1, "Brackets balanced");
+    }
+
+    /** The stack of still-open brackets just before 'upTo' (used for the live view). */
+    public static List<Entry> openBracketsBefore(String text, int upTo) {
+        ArrayStack<Entry> stack = new ArrayStack<>();
+        int end = Math.min(upTo, text.length());
+        for (int i = 0; i < end; i++) {
+            char c = text.charAt(i);
+            if (isOpen(c)) {
+                stack.push(new Entry(c, i));
+            } else if (isClose(c) && !stack.isEmpty() && stack.peek().ch == matching(c)) {
+                stack.pop();
+            }
+        }
+        return new ArrayList<>(stack.toListTopFirst());
+    }
+
+    /** Converts a character offset to "line X, col Y" (both 1-based). */
+    public static String lineCol(String text, int pos) {
+        int line = 1, col = 1;
+        for (int i = 0; i < pos && i < text.length(); i++) {
+            if (text.charAt(i) == '\n') {
+                line++;
+                col = 1;
+            } else {
+                col++;
+            }
+        }
+        return "line " + line + ", col " + col;
+    }
+}
